@@ -12,8 +12,12 @@ import java.awt.GridLayout;
 import javax.swing.JTextField;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Calendar;
+
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
+import java.awt.Color;
+import java.awt.Font;
 
 public class WinCalendar extends JDialog {
 
@@ -25,6 +29,11 @@ public class WinCalendar extends JDialog {
 	private JButton btnNextYear;
 	private JButton btnPrevYear;
 	
+	private int gYear;
+	private int gMonth;
+	private int gDay;
+	
+	private String selectedDate;
 	
 	/**
 	 * Launch the application.
@@ -42,7 +51,9 @@ public class WinCalendar extends JDialog {
 			}
 		});
 	}
-
+	public String getDate() {
+		return selectedDate;
+	}
 
 	/**
 	 * Create the dialog.
@@ -60,6 +71,8 @@ public class WinCalendar extends JDialog {
 		
 		
 		JButton btnRun = new JButton("달력보기");
+//		btnRun.setFont(new Font("굴림", Font.PLAIN, 18)); 글씨 크기
+		btnRun.setBackground(new Color(0, 128, 192));
 		btnRun.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				showCalendar();				
@@ -76,9 +89,11 @@ public class WinCalendar extends JDialog {
 		btnPrevMonth = new JButton("<");
 		btnPrevMonth.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				int year = Integer.parseInt(cbYear.getSelectedItem().toString());
 				int month = Integer.parseInt(cbMonth.getSelectedItem().toString());
 				month--;		
 				if(month==0) {
+					year--;
 					month=12;
 				}
 				cbMonth.setSelectedIndex(month-1);
@@ -87,6 +102,22 @@ public class WinCalendar extends JDialog {
 		});
 		
 		btnPrevYear = new JButton("<<");
+		btnPrevYear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				int year = Integer.parseInt(cbYear.getSelectedItem().toString());
+				
+				year--;
+				if(year == 1923)
+					year=1923;
+				
+				cbYear.setSelectedItem(year);
+				
+				showCalendar();
+			}
+			
+			
+		});
 		panel.add(btnPrevYear);
 		panel.add(btnPrevMonth);
 		
@@ -99,11 +130,14 @@ public class WinCalendar extends JDialog {
 		btnNextMonth = new JButton(">");
 		btnNextMonth.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				int year = Integer.parseInt(cbYear.getSelectedItem().toString());
 				int month = Integer.parseInt(cbMonth.getSelectedItem().toString());
 				month++;		
 				if(month==13) {
+					year++;
 					month=1;
 				}
+				cbYear.setSelectedItem(year);
 				cbMonth.setSelectedIndex(month-1);
 				showCalendar();
 			}
@@ -111,10 +145,41 @@ public class WinCalendar extends JDialog {
 		panel.add(btnNextMonth);
 		
 		btnNextYear = new JButton(">>");
+		btnNextYear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				int year = Integer.parseInt(cbYear.getSelectedItem().toString());
+				
+				year++;
+				if(year == 2123)
+					year=2123;
+				
+				cbYear.setSelectedItem(year);
+				
+				showCalendar();
+			}
+		});
 		panel.add(btnNextYear);
 
 		for(int year=1923;year<=2123;year++)
 			cbYear.addItem(year);
+		
+		//현재 연도와 월을 알아오자
+		Calendar today = Calendar.getInstance();
+		gYear = today.get(Calendar.YEAR);
+		gMonth = today.get(Calendar.MONTH) + 1; //0~11 => 1~12
+		gDay = today.get(Calendar.DAY_OF_MONTH);
+		
+//		System.out.println(today.get(Calendar.YEAR));
+//		System.out.println(today.get(Calendar.MONTH) + 1); // 0~11 => 1~12
+//		System.out.println(today.get(Calendar.DAY_OF_MONTH));
+		
+		cbYear.setSelectedItem(gYear);
+		cbMonth.setSelectedItem(Integer.toString(gMonth));
+//		cbYear.setSelectedItem(today.get(Calendar.YEAR));
+//		cbMonth.setSelectedItem(Integer.toString(today.get(Calendar.MONTH)+1));
+//		cbMonth.setSelectedIndex(today.get(Calendar.MONTH)+1);
+//		cbMonth.setSelectedIndex(today.get(Calendar.MONTH));
+		
 	}
 
 	protected void showCalendar() {
@@ -145,6 +210,10 @@ public class WinCalendar extends JDialog {
 		 String yoil = "일월화수목금토";
 	      for(int i=0;i<yoil.length();i++) {
 	         JButton btn = new JButton(yoil.substring(i,i+1));   
+	         btn.setBackground(Color.BLUE);
+	         btn.setForeground(new Color(0,0,255));
+	         btn.setEnabled(false);
+	         btn.setFont(new Font("굴림", Font.PLAIN, 16));
 	         panelCalendar.add(btn);
 	      }
 
@@ -180,16 +249,29 @@ public class WinCalendar extends JDialog {
 		}
 	    
 	      
-		// 해당하는 달의 마지막 날짜까지 버튼을 생성한다.
+	 // 해당하는 달의 마지막 날짜까지 버튼을 생성한다.
 		
-		int last = Month[month-1];
-		if(month==2 &&  (year%4==0 && year%100!=0 || year%400==0) )
-			last++;
-		for(int i=1;i<=last;i++) {
-			JButton btn = new JButton(i + "");
-			panelCalendar.add(btn);			
-			panelCalendar.revalidate();
-		}
-	}
+	 		int last = Month[month-1];
+	 		if(month==2 &&  (year%4==0 && year%100!=0 || year%400==0) )
+	 			last++;
+	 		for(int i=1;i<=last;i++) {  // 1일부터 해당월의 마지막 날짜를 출력한다.			
+	 			JButton btn = new JButton(i + "");
+	 			btn.addActionListener(new ActionListener() {
+	 				
+	 				@Override
+	 				public void actionPerformed(ActionEvent e) {
+	 					JButton btn1 = (JButton)e.getSource();
+//	 					System.out.println(btn1.getText()+"일");
+	 					selectedDate = year + "-" + month + "-" + btn1.getText();
+	 					System.out.println(selectedDate);
+	 				}
+	 			});
+	 			if(year == gYear && month == gMonth	&& i == gDay)
+	 				btn.setBackground(Color.red);
+	 			panelCalendar.add(btn);			
+	 			panelCalendar.revalidate();
+	 		}
+	 	}
 
-}
+	 }
+
